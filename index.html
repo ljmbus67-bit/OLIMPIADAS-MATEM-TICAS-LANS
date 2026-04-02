@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LANSSO – Olimpiadas Matemáticas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --lans-green: #2e7d32;
+    --lans-green-light: #4caf50;
+    --lans-yellow: #f9c613;
+    --lans-yellow-dark: #f0a500;
+    --lans-dark: #0d1a0e;
+    --lans-teal: #00897b;
+    --lans-accent: #a5d6a7;
+    --card-bg: rgba(15,30,16,0.85);
+    --input-bg: rgba(10,25,12,0.9);
+    --border-glow: rgba(249,198,19,0.4);
+    --white: #fff;
+    --text-muted: #a5d6a7;
+    --danger: #e53935;
+    --danger-light: #ffcdd2;
+    --success: #43a047;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--lans-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: var(--white);
+  }
+
+  /* ── BACKGROUND ── */
+  #bg-canvas {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 20% 20%, #1b4020 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 80%, #1a3a1a 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, #0d1a0e 0%, #050d06 100%);
+  }
+  .math-float {
+    position: fixed; font-family: 'Orbitron', monospace; font-size: 1.1rem;
+    color: rgba(249,198,19,0.08); pointer-events: none; z-index: 0;
+    animation: floatMath linear infinite;
+  }
+  @keyframes floatMath {
+    from { transform: translateY(110vh) rotate(0deg); opacity:0.08; }
+    to   { transform: translateY(-10vh) rotate(360deg); opacity:0; }
+  }
+
+  /* ── LAYOUT ── */
+  .page { position: relative; z-index: 1; min-height: 100vh; display: none; }
+  .page.active { display: flex; }
+
+  /* ══════════════════════════════════════════
+     LOGIN PAGE
+  ══════════════════════════════════════════ */
+  #page-login {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 100vh;
+  }
+  .login-left {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(46,125,50,0.15) 0%, transparent 60%);
+    position: relative;
+  }
+  .login-left .brand-logo {
+    font-family: 'Orbitron', sans-serif; font-size: 2.8rem; font-weight: 900;
+    color: var(--lans-yellow); letter-spacing: 4px;
+    text-shadow: 0 0 30px rgba(249,198,19,0.5);
+    margin-bottom: 0.3rem;
+  }
+  .login-left .brand-tagline {
+    font-size: 0.85rem; color: var(--lans-accent); letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 2.5rem;
+  }
+  .mascot-wrap {
+    width: 260px; height: 260px;
+    filter: drop-shadow(0 0 30px rgba(249,198,19,0.35));
+    animation: mascotFloat 4s ease-in-out infinite;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  @keyframes mascotFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-16px); }
+  }
+  .mascot-wrap svg { width: 100%; height: 100%; }
+  .school-name-left {
+    font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 700;
+    color: var(--lans-accent); letter-spacing: 2px; text-align: center;
+    text-transform: uppercase; line-height: 1.6;
+  }
+
+  .login-right {
+    width: 480px; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 3rem 2.5rem;
+    background: rgba(8,20,9,0.7);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(249,198,19,0.15);
+  }
+  .event-badge {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.5rem 1.2rem; border-radius: 30px;
+    background: rgba(249,198,19,0.1); border: 1px solid rgba(249,198,19,0.3);
+    font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--lans-yellow); margin-bottom: 1.5rem;
+  }
+  .login-title {
+    font-family: 'Orbitron', sans-serif; font-size: 1.9rem; font-weight: 900;
+    text-align: center; line-height: 1.2; margin-bottom: 0.4rem;
+  }
+  .login-title span:nth-child(1) { color: var(--lans-green-light); }
+  .login-title span:nth-child(2) { color: var(--lans-yellow); }
+  .login-subtitle {
+    font-size: 0.82rem; color: var(--text-muted); text-align: center;
+    margin-bottom: 2rem; letter-spacing: 1px;
+  }
+
+  /* event card */
+  .event-card {
+    width: 100%; background: rgba(46,125,50,0.1);
+    border: 1px solid rgba(249,198,19,0.2); border-radius: 14px;
+    padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 2rem; cursor: pointer; transition: all .3s;
+  }
+  .event-card:hover { border-color: var(--lans-yellow); background: rgba(249,198,19,0.08); }
+  .event-card-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--lans-green), var(--lans-teal));
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+  .event-card-info { flex: 1; }
+  .event-card-name { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--lans-yellow); }
+  .event-card-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* form */
+  .form-group { width: 100%; margin-bottom: 1.1rem; }
+  .form-label {
+    font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--lans-accent); margin-bottom: 0.4rem; display: block;
+  }
+  .input-wrap {
+    display: flex; align-items: center; gap: 0.7rem;
+    background: var(--input-bg); border: 1px solid rgba(249,198,19,0.2);
+    border-radius: 10px; padding: 0 1rem; transition: border .3s;
+  }
+  .input-wrap:focus-within { border-color: var(--lans-yellow); box-shadow: 0 0 0 3px rgba(249,198,19,0.1); }
+  .input-wrap svg { color: var(--text-muted); flex-shrink: 0; }
+  .input-wrap input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--white); font-family: 'Nunito', sans-serif; font-size: 0.95rem;
+    padding: 0.85rem 0;
+  }
+  .input-wrap input::placeholder { color: rgba(165,214,167,0.4); }
+  .eye-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0; line-height: 1; }
+
+  .btn-login {
+    width: 100%; padding: 0.9rem;
+    background: linear-gradient(90deg, var(--lans-green) 0%, var(--lans-yellow) 100%);
+    border: none; border-radius: 10px; color: #0d1a0e;
+    font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 900;
+    letter-spacing: 2px; cursor: pointer; margin-top: 0.5rem;
+    transition: all .3s; text-transform: uppercase;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(249,198,19,0.4); }
+  .btn-login:active { transform: translateY(0); }
+
+  .notice-box {
+    width: 100%; margin-top: 1.2rem;
+    background: rgba(249,198,19,0.08); border: 1px solid rgba(249,198,19,0.25);
+    border-radius: 10px; padding: 0.85rem 1rem;
+    display: flex; align-items: flex-start; gap: 0.7rem; font-size: 0.8rem;
+  }
+  .notice-box .notice-icon { font-size: 1rem; margin-top: 1px; flex-shrink: 0; }
+  .notice-box strong { color: var(--lans-yellow); }
+  .notice-box span { color: var(--text-muted); }
+  .notice-box a { color: var(--lans-green-light); }
+
+  .login-error {
+    width: 100%; background: rgba(229,57,53,0.15); border: 1px solid var(--danger);
+    border-radius: 8px; padding: 0.7rem 1rem; font-size: 0.82rem; color: var(--danger-light);
+    margin-bottom: 0.8rem; display: none; text-align: center;
+  }
+
+  /* admin link */
+  .admin-link {
+    margin-top: 1.5rem; font-size: 0.75rem; color: rgba(165,214,167,0.4);
+    cursor: pointer; text-decoration: underline; transition: color .2s;
+  }
+  .admin-link:hover { color: var(--lans-accent); }
+
+  /* ══════════════════════════════════════════
+     ADMIN PAGE
+  ══════════════════════════════════════════ */
+  #page-admin {
+    flex-direction: column; min-height: 100vh;
+  }
+  .admin-header {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1rem 2rem;
+    background: rgba(8,20,9,0.9); border-bottom: 1px solid rgba(249,198,19,0.2);
+    backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100;
+  }
+  .admin-header .logo {
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.2rem;
+    color: var(--lans-yellow);
+  }
+  .admin-header .logo span { color: var(--lans-green-light); }
+  .header-spacer { flex: 1; }
+  .badge-section {
+    background: rgba(46,125,50,0.2); border: 1px solid var(--lans-green-light);
+    padding: 0.3rem 0.9rem; border-radius: 20px; font-size: 0.78rem;
+    color: var(--lans-green-light); font-weight: 700;
+  }
+  .btn-sm {
+    padding: 0.4rem 0.9rem; border-radius: 8px; border: none; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 0.8rem; font-weight: 700;
+    transition: all .2s;
+  }
+  .btn-sm.danger { background: var(--danger); color: #fff; }
+  .btn-sm.danger:hover { background: #c62828; }
+  .btn-sm.primary { background: var(--lans-yellow); color: #0d1a0e; }
+  .btn-sm.primary:hover { background: var(--lans-yellow-dark); }
+  .btn-sm.success { background: var(--lans-green-light); color: #0d1a0e; }
+  .btn-sm.success:hover { background: var(--lans-green); color: #fff; }
+  .btn-sm.teal { background: var(--lans-teal); color: #fff; }
+  .btn-sm.teal:hover { background: #00695c; }
+
+  .admin-body {
+    flex: 1; display: flex; gap: 0;
+  }
+  .admin-sidebar {
+    width: 240px; flex-shrink: 0;
+    background: rgba(8,20,9,0.7); border-right: 1px solid rgba(249,198,19,0.1);
+    padding: 1.5rem 0; display: flex; flex-direction: column; gap: 0.3rem;
+  }
+  .sidebar-section-title {
+    font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(165,214,167,0.4); padding: 0.5rem 1.5rem; margin-top: 0.8rem;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.65rem 1.5rem; cursor: pointer; transition: all .2s;
+    font-size: 0.88rem; color: var(--text-muted); border-left: 3px solid transparent;
+  }
+  .sidebar-item:hover { background: rgba(249,198,19,0.06); color: var(--white); }
+  .sidebar-item.active {
+    background: rgba(249,198,19,0.1); color: var(--lans-yellow);
+    border-left-color: var(--lans-yellow);
+  }
+  .sidebar-item svg { flex-shrink: 0; }
+
+  .admin-main {
+    flex: 1; padding: 2rem; overflow-y: auto; max-height: calc(100vh - 60px);
+  }
+  .admin-panel { display: none; }
+  .admin-panel.active { display: block; }
+
+  .panel-title {
+    font-family: 'Orbitron', sans-serif; font-size: 1.2rem; font-weight: 700;
+    color: var(--lans-yellow); margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.7rem;
+  }
+
+  /* stats grid */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem; margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--card-bg); border: 1px solid rgba(249,198,19,0.15);
+    border-radius: 14px; padding: 1.2rem 1rem; text-align: center;
+  }
+  .stat-card .stat-val {
+    font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 900;
+    color: var(--lans-yellow);
+  }
+  .stat-card .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+  /* question builder */
+  .question-form {
+    background: var(--card-bg); border: 1px solid rgba(249,198,19,0.15);
+    border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  .form-row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .form-col { flex: 1; min-width: 160px; }
+  .form-col label { font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--lans-accent); display: block; margin-bottom: 0.35rem; }
+  .form-col select, .form-col input[type="text"], .form-col textarea {
+    width: 100%; background: var(--input-bg); border: 1px solid rgba(249,198,19,0.2);
+    border-radius: 8px; color: var(--white); font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem; padding: 0.6rem 0.85rem; outline: none;
+    transition: border .2s; resize: vertical;
+  }
+  .form-col select:focus, .form-col input[type="text"]:focus, .form-col textarea:focus {
+    border-color: var(--lans-yellow);
+  }
+  .form-col select option { background: #0d1a0e; }
+
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .option-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: var(--input-bg); border: 1px solid rgba(249,198,19,0.15);
+    border-radius: 10px; padding: 0.5rem 0.8rem;
+  }
+  .option-label {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(249,198,19,0.15); display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.85rem; color: var(--lans-yellow); flex-shrink: 0;
+  }
+  .option-item input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--white); font-family: 'Nunito', sans-serif; font-size: 0.85rem; }
+  .option-item input[type="radio"] { accent-color: var(--lans-yellow); width: 16px; height: 16px; flex-shrink: 0; cursor: pointer; }
+  .option-img-btn {
+    background: none; border: none; cursor: pointer; color: var(--text-muted);
+    font-size: 0.9rem; padding: 2px; transition: color .2s;
+  }
+  .option-img-btn:hover { color: var(--lans-yellow); }
+
+  .img-preview {
+    max-width: 100%; max-height: 120px; border-radius: 8px;
+    border: 1px solid rgba(249,198,19,0.2); display: none; margin-top: 6px;
+  }
+
+  /* question list */
+  .question-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .q-item {
+    background: var(--card-bg); border: 1px solid rgba(249,198,19,0.12);
+    border-radius: 12px; padding: 1rem 1.2rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+  }
+  .q-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--lans-green), var(--lans-teal));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 0.85rem; color: #fff; flex-shrink: 0;
+  }
+  .q-content { flex: 1; min-width: 0; }
+  .q-text { font-size: 0.9rem; color: var(--white); margin-bottom: 4px; }
+  .q-meta { font-size: 0.72rem; color: var(--text-muted); }
+  .q-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+  /* participants table */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(249,198,19,0.12); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  thead tr { background: rgba(46,125,50,0.25); }
+  thead th { padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--lans-yellow); white-space: nowrap; }
+  tbody tr { border-top: 1px solid rgba(255,255,255,0.05); transition: background .2s; }
+  tbody tr:hover { background: rgba(249,198,19,0.04); }
+  tbody td { padding: 0.7rem 1rem; color: var(--text-muted); }
+  tbody td:first-child { color: var(--white); font-weight: 600; }
+  .badge-phase {
+    display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 700;
+  }
+  .badge-phase.clasif { background: rgba(76,175,80,0.2); color: var(--lans-green-light); border: 1px solid var(--lans-green-light); }
+  .badge-phase.semi { background: rgba(249,198,19,0.15); color: var(--lans-yellow); border: 1px solid var(--lans-yellow); }
+  .badge-phase.final { background: rgba(229,57,53,0.15); color: #ef9a9a; border: 1px solid #ef9a9a; }
+
+  /* sheets config */
+  .sheets-form {
+    background: var(--card-bg); border: 1px solid rgba(249,198,19,0.15);
+    border-radius: 16px; padding: 1.5rem;
+  }
+  .sheets-form input[type="text"] {
+    width: 100%; background: var(--input-bg); border: 1px solid rgba(249,198,19,0.2);
+    border-radius: 8px; color: var(--white); font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem; padding: 0.7rem 1rem; outline: none; margin-bottom: 1rem;
+    transition: border .2s;
+  }
+  .sheets-form input[type="text"]:focus { border-color: var(--lans-yellow); }
+  .code-block {
+    background: rgba(0,0,0,0.5); border: 1px solid rgba(249,198,19,0.2);
+    border-radius: 10px; padding: 1rem; font-family: 'Courier New', monospace;
+    font-size: 0.78rem; color: #a5d6a7; overflow-x: auto; line-height: 1.6;
+    white-space: pre; margin: 1rem 0;
+    max-height: 320px;
+  }
+
+  /* phase management */
+  .phase-cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem; margin-bottom: 2rem;
+  }
+  .phase-card {
+    background: var(--card-bg); border: 2px solid rgba(249,198,19,0.12);
+    border-radius: 16px; padding: 1.3rem;
+  }
+  .phase-card.active-phase { border-color: var(--lans-yellow); }
+  .phase-card-title {
+    font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700;
+    color: var(--lans-yellow); margin-bottom: 0.4rem;
+  }
+  .phase-card-info { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem; line-height: 1.6; }
+  .phase-status {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.7rem;
+    border-radius: 20px; margin-bottom: 0.8rem;
+  }
+  .phase-status.open { background: rgba(76,175,80,0.2); color: var(--lans-green-light); }
+  .phase-status.closed { background: rgba(229,57,53,0.15); color: #ef9a9a; }
+  .phase-status .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ══════════════════════════════════════════
+     EXAM PAGE
+  ══════════════════════════════════════════ */
+  #page-exam {
+    flex-direction: column; min-height: 100vh;
+  }
+  .exam-header {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.75rem 2rem;
+    background: rgba(8,20,9,0.95); border-bottom: 1px solid rgba(249,198,19,0.2);
+    backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100;
+    flex-wrap: wrap; gap: 0.7rem;
+  }
+  .exam-logo { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.1rem; color: var(--lans-yellow); }
+  .exam-info { flex: 1; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .exam-phase-badge {
+    font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 700;
+    padding: 0.3rem 0.9rem; border-radius: 20px;
+    background: rgba(249,198,19,0.15); border: 1px solid rgba(249,198,19,0.4);
+    color: var(--lans-yellow);
+  }
+  .exam-section-badge {
+    font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.9rem; border-radius: 20px;
+    background: rgba(46,125,50,0.25); border: 1px solid var(--lans-green-light);
+    color: var(--lans-green-light);
+  }
+  .exam-user-info { font-size: 0.82rem; color: var(--text-muted); }
+
+  .timer-wrap {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 900;
+    color: var(--lans-yellow); padding: 0.3rem 1rem;
+    border: 2px solid rgba(249,198,19,0.3); border-radius: 30px;
+    min-width: 110px; justify-content: center; transition: all .3s;
+  }
+  .timer-wrap.warning { color: var(--danger); border-color: var(--danger); animation: timerPulse 1s infinite; }
+  @keyframes timerPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(229,57,53,0.4); } 50% { box-shadow: 0 0 0 8px rgba(229,57,53,0); } }
+
+  .exam-body {
+    flex: 1; display: flex; gap: 0; overflow: hidden;
+  }
+  .exam-sidebar {
+    width: 200px; flex-shrink: 0; padding: 1.2rem 1rem;
+    background: rgba(8,20,9,0.7); border-right: 1px solid rgba(249,198,19,0.1);
+    overflow-y: auto; max-height: calc(100vh - 60px);
+  }
+  .sidebar-label { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(165,214,167,0.4); margin-bottom: 0.7rem; }
+  .q-nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .q-nav-btn {
+    aspect-ratio: 1; border-radius: 8px; border: 1px solid rgba(249,198,19,0.2);
+    background: var(--input-bg); color: var(--text-muted); font-size: 0.78rem;
+    font-weight: 700; cursor: pointer; transition: all .2s; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .q-nav-btn:hover { border-color: var(--lans-yellow); color: var(--lans-yellow); }
+  .q-nav-btn.answered { background: rgba(76,175,80,0.25); border-color: var(--lans-green-light); color: var(--lans-green-light); }
+  .q-nav-btn.current { background: rgba(249,198,19,0.2); border-color: var(--lans-yellow); color: var(--lans-yellow); }
+
+  .progress-info { margin-top: 1.2rem; padding-top: 1.2rem; border-top: 1px solid rgba(249,198,19,0.1); }
+  .progress-bar-wrap { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; margin: 0.5rem 0; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--lans-green), var(--lans-yellow)); border-radius: 3px; transition: width .4s; }
+  .progress-text { font-size: 0.72rem; color: var(--text-muted); }
+
+  .exam-main {
+    flex: 1; padding: 2rem; overflow-y: auto; max-height: calc(100vh - 60px);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .question-card {
+    width: 100%; max-width: 760px;
+    background: var(--card-bg); border: 1px solid rgba(249,198,19,0.15);
+    border-radius: 20px; padding: 2rem; margin-bottom: 1.5rem;
+  }
+  .question-number {
+    font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 700;
+    color: var(--lans-yellow); letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .question-text { font-size: 1.05rem; line-height: 1.7; color: var(--white); margin-bottom: 1rem; }
+  .question-img { max-width: 100%; max-height: 280px; border-radius: 10px; margin-bottom: 1rem; display: block; border: 1px solid rgba(249,198,19,0.15); }
+
+  .options-list { display: flex; flex-direction: column; gap: 0.7rem; }
+  .option-btn {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--input-bg); border: 2px solid rgba(249,198,19,0.12);
+    border-radius: 12px; padding: 0.9rem 1.2rem; cursor: pointer;
+    transition: all .25s; text-align: left; width: 100%;
+  }
+  .option-btn:hover { border-color: rgba(249,198,19,0.4); background: rgba(249,198,19,0.05); }
+  .option-btn.selected { border-color: var(--lans-yellow); background: rgba(249,198,19,0.1); }
+  .option-btn .opt-letter {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(249,198,19,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 0.82rem;
+    color: var(--lans-yellow); transition: all .25s;
+  }
+  .option-btn.selected .opt-letter { background: var(--lans-yellow); color: #0d1a0e; border-color: var(--lans-yellow); }
+  .option-btn .opt-text { flex: 1; font-size: 0.95rem; color: var(--white); }
+  .option-btn .opt-img { max-height: 80px; border-radius: 6px; max-width: 120px; object-fit: contain; }
+
+  .exam-nav {
+    width: 100%; max-width: 760px; display: flex; gap: 1rem; justify-content: space-between;
+    margin-top: 0.5rem;
+  }
+  .btn-nav {
+    padding: 0.8rem 2rem; border-radius: 10px; border: none; cursor: pointer;
+    font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 800;
+    transition: all .25s; letter-spacing: 0.5px;
+  }
+  .btn-nav.prev { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+  .btn-nav.prev:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+  .btn-nav.next { background: linear-gradient(90deg, var(--lans-green), var(--lans-teal)); color: #fff; }
+  .btn-nav.next:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46,125,50,0.5); }
+  .btn-nav.submit { background: linear-gradient(90deg, var(--lans-green), var(--lans-yellow)); color: #0d1a0e; font-weight: 900; }
+  .btn-nav.submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(249,198,19,0.4); }
+
+  /* ══════════════════════════════════════════
+     RESULTS PAGE
+  ══════════════════════════════════════════ */
+  #page-results {
+    flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 3rem 1rem;
+  }
+  .results-card {
+    background: var(--card-bg); border: 1px solid rgba(249,198,19,0.2);
+    border-radius: 24px; padding: 3rem; max-width: 560px; width: 100%;
+    text-align: center;
+  }
+  .results-trophy { font-size: 4rem; margin-bottom: 1rem; animation: trophyBounce .8s ease-out; }
+  @keyframes trophyBounce { from { transform: scale(0) rotate(-20deg); opacity:0; } to { transform: scale(1) rotate(0); opacity:1; } }
+  .results-name { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 900; color: var(--lans-yellow); margin-bottom: 0.3rem; }
+  .results-section { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; }
+  .results-score {
+    font-family: 'Orbitron', sans-serif; font-size: 4rem; font-weight: 900;
+    color: var(--lans-green-light); line-height: 1;
+    text-shadow: 0 0 40px rgba(76,175,80,0.5);
+    margin-bottom: 0.3rem;
+  }
+  .results-score-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2rem; }
+  .results-details {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem;
+  }
+  .result-detail { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 0.9rem; }
+  .result-detail-val { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--white); }
+  .result-detail-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+  .results-msg { font-size: 0.9rem; color: var(--lans-accent); line-height: 1.6; margin-bottom: 2rem; }
+
+  /* ══════════════════════════════════════════
+     MODAL
+  ══════════════════════════════════════════ */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px); z-index: 1000;
+    display: none; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #0f1e10; border: 1px solid rgba(249,198,19,0.25);
+    border-radius: 20px; padding: 2rem; max-width: 500px; width: 100%;
+    animation: modalIn .25s ease-out;
+  }
+  @keyframes modalIn { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  .modal-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--lans-yellow); margin-bottom: 1rem; }
+  .modal-text { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; }
+  .modal-actions { display: flex; gap: 0.8rem; justify-content: flex-end; }
+
+  /* toasts */
+  .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; }
+  .toast {
+    background: #1a2e1b; border: 1px solid rgba(249,198,19,0.3);
+    border-radius: 10px; padding: 0.8rem 1.2rem; font-size: 0.85rem;
+    color: var(--white); display: flex; align-items: center; gap: 0.6rem;
+    animation: toastIn .3s ease-out; min-width: 220px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .toast.success { border-color: var(--lans-green-light); }
+  .toast.error { border-color: var(--danger); }
+  @keyframes toastIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    #page-login { flex-direction: column; }
+    .login-left { padding: 2rem 1rem 1rem; min-height: auto; }
+    .mascot-wrap { width: 150px; height: 150px; }
+    .login-right { width: 100%; border-left: none; border-top: 1px solid rgba(249,198,19,0.15); }
+    .admin-sidebar { width: 60px; }
+    .sidebar-item span { display: none; }
+    .sidebar-section-title { display: none; }
+    .exam-sidebar { width: 60px; }
+    .exam-sidebar .sidebar-label { display: none; }
+    .exam-sidebar .progress-info { display: none; }
+    .q-nav-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Animated math background -->
+<div id="bg-canvas"></div>
+
+<!-- ══════════════════ LOGIN PAGE ══════════════════ -->
+<div id="page-login" class="page active">
+  <div class="login-left">
+    <div class="brand-logo">LANS</div>
+    <div class="brand-tagline">Camino a la Excelencia</div>
+
+    <!-- Mascot SVG Lion -->
+    <div class="mascot-wrap">
+      <svg viewBox="0 0 300 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- Body -->
+        <ellipse cx="150" cy="210" rx="65" ry="75" fill="#f57c00"/>
+        <!-- Belly -->
+        <ellipse cx="150" cy="225" rx="38" ry="50" fill="#fff3e0"/>
+        <!-- LANSSO text on belly -->
+        <text x="150" y="215" text-anchor="middle" font-family="Arial Black" font-size="11" font-weight="900" fill="#2e7d32">LANSSO</text>
+        <text x="150" y="230" text-anchor="middle" font-family="Arial" font-size="7" fill="#f57c00">OLIMPIADAS</text>
+        <text x="150" y="242" text-anchor="middle" font-family="Arial" font-size="7" fill="#f57c00">MATEMÁTICAS</text>
+        <!-- Head -->
+        <circle cx="150" cy="120" r="62" fill="#f57c00"/>
+        <!-- Mane -->
+        <ellipse cx="150" cy="128" rx="80" ry="72" fill="#e65100" opacity="0.85"/>
+        <circle cx="84" cy="100" r="28" fill="#bf360c" opacity="0.7"/>
+        <circle cx="216" cy="100" r="28" fill="#bf360c" opacity="0.7"/>
+        <circle cx="100" cy="72" r="22" fill="#e64a19" opacity="0.8"/>
+        <circle cx="200" cy="72" r="22" fill="#e64a19" opacity="0.8"/>
+        <circle cx="150" cy="62" r="20" fill="#f4511e" opacity="0.7"/>
+        <!-- Face -->
+        <circle cx="150" cy="118" r="52" fill="#f57c00"/>
+        <!-- Ears -->
+        <circle cx="98" cy="75" r="18" fill="#f57c00"/>
+        <circle cx="202" cy="75" r="18" fill="#f57c00"/>
+        <circle cx="98" cy="75" r="10" fill="#ffa726"/>
+        <circle cx="202" cy="75" r="10" fill="#ffa726"/>
+        <!-- Eyes -->
+        <circle cx="132" cy="112" r="14" fill="#fff"/>
+        <circle cx="168" cy="112" r="14" fill="#fff"/>
+        <circle cx="134" cy="114" r="9" fill="#4e342e"/>
+        <circle cx="170" cy="114" r="9" fill="#4e342e"/>
+        <circle cx="136" cy="112" r="4" fill="#000"/>
+        <circle cx="172" cy="112" r="4" fill="#000"/>
+        <circle cx="138" cy="110" r="2" fill="#fff"/>
+        <circle cx="174" cy="110" r="2" fill="#fff"/>
+        <!-- Nose -->
+        <ellipse cx="150" cy="132" rx="12" ry="8" fill="#bf360c"/>
+        <ellipse cx="150" cy="131" rx="8" ry="5" fill="#e64a19"/>
+        <!-- Mouth -->
+        <path d="M138 142 Q150 155 162 142" fill="none" stroke="#4e342e" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="150" y1="140" x2="150" y2="142" stroke="#4e342e" stroke-width="2"/>
+        <!-- Whiskers -->
+        <line x1="100" y1="132" x2="130" y2="136" stroke="#fff3e0" stroke-width="1.5" opacity="0.7"/>
+        <line x1="100" y1="140" x2="130" y2="140" stroke="#fff3e0" stroke-width="1.5" opacity="0.7"/>
+        <line x1="170" y1="136" x2="200" y2="132" stroke="#fff3e0" stroke-width="1.5" opacity="0.7"/>
+        <line x1="170" y1="140" x2="200" y2="140" stroke="#fff3e0" stroke-width="1.5" opacity="0.7"/>
+        <!-- Arms -->
+        <ellipse cx="82" cy="200" rx="20" ry="42" fill="#f57c00" transform="rotate(-20,82,200)"/>
+        <ellipse cx="218" cy="200" rx="20" ry="42" fill="#f57c00" transform="rotate(20,218,200)"/>
+        <!-- Paws -->
+        <ellipse cx="70" cy="238" rx="18" ry="12" fill="#ef6c00"/>
+        <ellipse cx="230" cy="238" rx="18" ry="12" fill="#ef6c00"/>
+        <!-- Legs -->
+        <ellipse cx="122" cy="278" rx="22" ry="28" fill="#f57c00"/>
+        <ellipse cx="178" cy="278" rx="22" ry="28" fill="#f57c00"/>
+        <!-- Feet / Shoes - Jordan style -->
+        <ellipse cx="118" cy="300" rx="28" ry="13" fill="#212121"/>
+        <ellipse cx="182" cy="300" rx="28" ry="13" fill="#1565c0"/>
+        <path d="M95 298 Q118 290 141 298" fill="#f44336" opacity="0.8"/>
+        <path d="M159 298 Q182 290 205 298" fill="#43a047" opacity="0.8"/>
+        <!-- Stars / sparkles -->
+        <text x="42" y="80" font-size="14" fill="#f9c613" opacity="0.9">✦</text>
+        <text x="248" y="70" font-size="12" fill="#f9c613" opacity="0.8">✦</text>
+        <text x="62" y="170" font-size="10" fill="#f9c613" opacity="0.6">✧</text>
+        <text x="228" y="160" font-size="10" fill="#f9c613" opacity="0.6">✧</text>
+        <!-- Math symbols -->
+        <text x="30" y="250" font-family="Orbitron" font-size="13" fill="#f9c613" opacity="0.5">π</text>
+        <text x="252" y="240" font-family="serif" font-size="14" fill="#f9c613" opacity="0.5">Σ</text>
+        <text x="240" y="275" font-family="serif" font-size="11" fill="#f9c613" opacity="0.4">∞</text>
+      </svg>
+    </div>
+
+    <div class="school-name-left">Liceo Arquidiocesano<br>de Nuestra Señora</div>
+  </div>
+
+  <div class="login-right">
+    <div class="event-badge">🏆 Primera Edición</div>
+
+    <div class="login-title">
+      <span>OLIMPIADAS<br></span>
+      <span>MATEMÁTICAS</span>
+    </div>
+    <div class="login-subtitle">Acceso al sistema de evaluación</div>
+
+    <div class="event-card" onclick="showSectionSelect()">
+      <div class="event-card-icon">🦁</div>
+      <div class="event-card-info">
+        <div class="event-card-name">LANSSO 2025</div>
+        <div class="event-card-sub">Fase Clasificatoria · Semifinal · Final</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:rgba(165,214,167,0.4)"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+
+    <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
+
+    <div class="form-group">
+      <label class="form-label">Usuario</label>
+      <div class="input-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <input type="text" id="login-user" placeholder="Escribe tu usuario" autocomplete="username"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <div class="input-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <input type="password" id="login-pass" placeholder="Contraseña" autocomplete="current-password"/>
+        <button class="eye-btn" onclick="togglePass()" id="eye-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn-login" onclick="doLogin()">INGRESAR</button>
+
+    <div class="notice-box">
+      <span class="notice-icon">⚠️</span>
+      <div>
+        <strong>IMPORTANTE</strong><br>
+        <span id="phase-notice">La fase de clasificación terminó oficialmente. <a href="#" style="color:var(--lans-yellow)">Muy pronto comenzará la fase 2.</a></span>
+      </div>
+    </div>
+
+    <div class="admin-link" onclick="showAdminLogin()">Acceso Administrador</div>
+  </div>
+</div>
+
+<!-- ══════════════════ ADMIN PAGE ══════════════════ -->
+<div id="page-admin" class="page">
+  <div class="admin-header">
+    <div class="logo">LANS<span>SO</span></div>
+    <span style="font-size:0.7rem;color:var(--text-muted)">Panel Administrador</span>
+    <div class="header-spacer"></div>
+    <span class="badge-section" id="admin-badge-section">Sección: Todas</span>
+    <button class="btn-sm primary" onclick="saveAllToSheets()">📊 Sync Sheets</button>
+    <button class="btn-sm danger" onclick="logoutAdmin()">Salir</button>
+  </div>
+  <div class="admin-body">
+    <div class="admin-sidebar">
+      <div class="sidebar-section-title">General</div>
+      <div class="sidebar-item active" onclick="showAdminPanel('dashboard')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </div>
+      <div class="sidebar-item" onclick="showAdminPanel('phases')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Fases</span>
+      </div>
+      <div class="sidebar-section-title">Contenido</div>
+      <div class="sidebar-item" onclick="showAdminPanel('questions')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Preguntas</span>
+      </div>
+      <div class="sidebar-item" onclick="showAdminPanel('participants')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>Participantes</span>
+      </div>
+      <div class="sidebar-item" onclick="showAdminPanel('results')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Resultados</span>
+      </div>
+      <div class="sidebar-section-title">Config</div>
+      <div class="sidebar-item" onclick="showAdminPanel('sheets')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        <span>Google Sheets</span>
+      </div>
+      <div class="sidebar-item" onclick="showAdminPanel('users')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Usuarios</span>
+      </div>
+    </div>
+
+    <div class="admin-main">
+      <!-- DASHBOARD -->
+      <div id="panel-dashboard" class="admin-panel active">
+        <div class="panel-title">📊 Dashboard</div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="panel-title" style="font-size:1rem">🏅 Últimos resultados</div>
+        <div class="table-wrap">
+          <table id="recent-table">
+            <thead><tr><th>Participante</th><th>Sección</th><th>Fase</th><th>Puntaje</th><th>Fecha</th></tr></thead>
+            <tbody id="recent-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PHASES -->
+      <div id="panel-phases" class="admin-panel">
+        <div class="panel-title">⏱ Gestión de Fases</div>
+        <div class="phase-cards" id="phase-cards-wrap"></div>
+      </div>
+
+      <!-- QUESTIONS -->
+      <div id="panel-questions" class="admin-panel">
+        <div class="panel-title">❓ Gestión de Preguntas</div>
+        <div class="question-form">
+          <div class="form-row">
+            <div class="form-col">
+              <label>Sección</label>
+              <select id="q-section">
+                <option value="pitagoricos">Pitagóricos (4°-5°)</option>
+                <option value="arquimedianos">Arquimedianos (6°-7°)</option>
+                <option value="gaussianos">Gaussianos (8°-9°)</option>
+                <option value="eulerianos">Eulerianos (10°-11°)</option>
+              </select>
+            </div>
+            <div class="form-col">
+              <label>Fase</label>
+              <select id="q-phase">
+                <option value="clasificacion">Clasificatoria (20 preguntas / 100 min)</option>
+                <option value="semifinal">Semifinal (10 preguntas / 60 min)</option>
+                <option value="final">Final (5 preguntas / 40 min)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-col" style="flex:3">
+              <label>Enunciado de la pregunta</label>
+              <textarea id="q-text" rows="3" placeholder="Escribe el enunciado de la pregunta..."></textarea>
+              <div style="margin-top:6px;display:flex;align-items:center;gap:0.5rem">
+                <label style="font-size:0.72rem;color:var(--lans-accent);cursor:pointer;display:flex;align-items:center;gap:0.4rem">
+                  <input type="file" accept="image/*" style="display:none" onchange="loadQuestionImage(event)">
+                  📷 Subir imagen al enunciado
+                </label>
+                <button class="btn-sm" style="background:rgba(229,57,53,0.2);color:#ef9a9a;border:1px solid rgba(229,57,53,0.3)" onclick="clearQuestionImage()">✕ Quitar</button>
+              </div>
+              <img id="q-img-preview" class="img-preview"/>
+            </div>
+          </div>
+          <div style="margin-bottom:0.5rem;font-size:0.72rem;color:var(--lans-accent);letter-spacing:1.5px;text-transform:uppercase">
+            Opciones de respuesta <span style="color:rgba(165,214,167,0.4)">(selecciona la correcta con el radio)</span>
+          </div>
+          <div class="options-grid" id="options-builder"></div>
+          <div style="margin-top:1rem;display:flex;gap:0.8rem;flex-wrap:wrap">
+            <button class="btn-sm primary" onclick="addQuestion()">➕ Agregar Pregunta</button>
+            <button class="btn-sm" style="background:rgba(255,255,255,0.05);color:var(--text-muted)" onclick="clearQuestionForm()">🗑 Limpiar</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center">
+          <select id="filter-section-q" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);padding:0.5rem 0.8rem;font-family:'Nunito',sans-serif" onchange="renderQuestionList()">
+            <option value="all">Todas las secciones</option>
+            <option value="pitagoricos">Pitagóricos</option>
+            <option value="arquimedianos">Arquimedianos</option>
+            <option value="gaussianos">Gaussianos</option>
+            <option value="eulerianos">Eulerianos</option>
+          </select>
+          <select id="filter-phase-q" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);padding:0.5rem 0.8rem;font-family:'Nunito',sans-serif" onchange="renderQuestionList()">
+            <option value="all">Todas las fases</option>
+            <option value="clasificacion">Clasificatoria</option>
+            <option value="semifinal">Semifinal</option>
+            <option value="final">Final</option>
+          </select>
+          <span id="q-count" style="font-size:0.8rem;color:var(--text-muted)"></span>
+          <button class="btn-sm danger" onclick="clearAllQuestions()" style="margin-left:auto">🗑 Borrar todas</button>
+        </div>
+        <div class="question-list" id="question-list"></div>
+      </div>
+
+      <!-- PARTICIPANTS -->
+      <div id="panel-participants" class="admin-panel">
+        <div class="panel-title">👥 Participantes</div>
+        <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+          <button class="btn-sm primary" onclick="openAddUserModal()">➕ Nuevo participante</button>
+          <button class="btn-sm success" onclick="importCSV()">📥 Importar CSV</button>
+          <button class="btn-sm teal" onclick="exportCSV()">📤 Exportar CSV</button>
+          <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSVImport(event)">
+        </div>
+        <div class="table-wrap">
+          <table id="participants-table">
+            <thead><tr><th>#</th><th>Nombre</th><th>Usuario</th><th>Sección</th><th>Grado</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="participants-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="panel-results" class="admin-panel">
+        <div class="panel-title">📈 Resultados</div>
+        <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+          <select id="filter-section-r" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);padding:0.5rem 0.8rem;font-family:'Nunito',sans-serif" onchange="renderResults()">
+            <option value="all">Todas las secciones</option>
+            <option value="pitagoricos">Pitagóricos</option>
+            <option value="arquimedianos">Arquimedianos</option>
+            <option value="gaussianos">Gaussianos</option>
+            <option value="eulerianos">Eulerianos</option>
+          </select>
+          <select id="filter-phase-r" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);padding:0.5rem 0.8rem;font-family:'Nunito',sans-serif" onchange="renderResults()">
+            <option value="all">Todas las fases</option>
+            <option value="clasificacion">Clasificatoria</option>
+            <option value="semifinal">Semifinal</option>
+            <option value="final">Final</option>
+          </select>
+          <button class="btn-sm primary" onclick="saveAllToSheets()">📊 Enviar a Sheets</button>
+          <button class="btn-sm teal" onclick="exportResultsCSV()">📤 Exportar CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Nombre</th><th>Usuario</th><th>Sección</th><th>Fase</th><th>Correctas</th><th>Total</th><th>%</th><th>Tiempo</th><th>Fecha</th></tr></thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GOOGLE SHEETS -->
+      <div id="panel-sheets" class="admin-panel">
+        <div class="panel-title">📊 Integración Google Sheets</div>
+        <div class="sheets-form">
+          <label style="font-size:0.72rem;color:var(--lans-accent);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:0.5rem">URL del Web App (Apps Script)</label>
+          <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/TU_ID/exec" value=""/>
+          <button class="btn-sm primary" onclick="saveSheetURL()" style="margin-bottom:1.5rem">💾 Guardar URL</button>
+          <button class="btn-sm success" onclick="testSheetConnection()" style="margin-bottom:1.5rem;margin-left:0.5rem">🔗 Probar conexión</button>
+
+          <div style="font-size:0.82rem;color:var(--lans-accent);margin-bottom:0.5rem;font-weight:700">Código Apps Script para tu Google Sheet:</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem">Copia y pega este código en tu Google Apps Script (Extensiones → Apps Script)</div>
+          <div class="code-block" id="apps-script-code"></div>
+          <button class="btn-sm primary" onclick="copyAppsScript()">📋 Copiar código</button>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="panel-users" class="admin-panel">
+        <div class="panel-title">👤 Gestión de Usuarios / Contraseñas</div>
+        <div class="sheets-form">
+          <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">
+            Los usuarios y contraseñas se gestionan en la sección <strong style="color:var(--lans-yellow)">Participantes</strong>. 
+            Aquí puedes gestionar las credenciales del administrador.
+          </div>
+          <label style="font-size:0.72rem;color:var(--lans-accent);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:0.5rem">Nueva contraseña admin</label>
+          <input type="password" id="new-admin-pass" placeholder="Nueva contraseña de administrador"/>
+          <button class="btn-sm primary" onclick="changeAdminPass()">🔐 Cambiar contraseña</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ EXAM PAGE ══════════════════ -->
+<div id="page-exam" class="page">
+  <div class="exam-header">
+    <div class="exam-logo">LANSSO</div>
+    <div class="exam-info">
+      <span class="exam-phase-badge" id="exam-phase-badge">Fase Clasificatoria</span>
+      <span class="exam-section-badge" id="exam-section-badge">Pitagóricos</span>
+      <span class="exam-user-info" id="exam-user-info"></span>
+    </div>
+    <div class="timer-wrap" id="timer-display">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="timer-text">100:00</span>
+    </div>
+    <button class="btn-sm danger" onclick="confirmSubmit()">Entregar</button>
+  </div>
+  <div class="exam-body">
+    <div class="exam-sidebar">
+      <div class="sidebar-label">Preguntas</div>
+      <div class="q-nav-grid" id="q-nav-grid"></div>
+      <div class="progress-info">
+        <div class="progress-text" id="progress-text">0 de 0 respondidas</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="exam-main">
+      <div class="question-card" id="question-card">
+        <div class="question-number" id="q-number">PREGUNTA 1 DE 20</div>
+        <div class="question-text" id="q-text-display"></div>
+        <img id="q-img-display" class="question-img" style="display:none"/>
+        <div class="options-list" id="options-list"></div>
+      </div>
+      <div class="exam-nav">
+        <button class="btn-nav prev" id="btn-prev" onclick="prevQuestion()">← Anterior</button>
+        <button class="btn-nav next" id="btn-next" onclick="nextQuestion()">Siguiente →</button>
+        <button class="btn-nav submit" id="btn-submit" onclick="confirmSubmit()" style="display:none">✅ Entregar Examen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ RESULTS PAGE ══════════════════ -->
+<div id="page-results" class="page">
+  <div class="results-card">
+    <div class="results-trophy" id="results-trophy">🏆</div>
+    <div class="results-name" id="results-name"></div>
+    <div class="results-section" id="results-section-text"></div>
+    <div class="results-score" id="results-score">0%</div>
+    <div class="results-score-label">Porcentaje de aciertos</div>
+    <div class="results-details">
+      <div class="result-detail">
+        <div class="result-detail-val" id="res-correct">0</div>
+        <div class="result-detail-label">Correctas</div>
+      </div>
+      <div class="result-detail">
+        <div class="result-detail-val" id="res-total">0</div>
+        <div class="result-detail-label">Total</div>
+      </div>
+      <div class="result-detail">
+        <div class="result-detail-val" id="res-time">0:00</div>
+        <div class="result-detail-label">Tiempo usado</div>
+      </div>
+    </div>
+    <div class="results-msg" id="results-msg"></div>
+    <button class="btn-login" onclick="showPage('login')" style="width:100%">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-submit">
+  <div class="modal">
+    <div class="modal-title">⚠️ Entregar examen</div>
+    <div class="modal-text" id="modal-submit-text">¿Estás seguro de que quieres entregar tu examen? No podrás modificar tus respuestas.</div>
+    <div class="modal-actions">
+      <button class="btn-sm" style="background:rgba(255,255,255,0.08);color:var(--text-muted)" onclick="closeModal('modal-submit')">Cancelar</button>
+      <button class="btn-sm primary" onclick="submitExam()">Sí, entregar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-user">
+  <div class="modal">
+    <div class="modal-title">➕ Nuevo participante</div>
+    <div style="display:flex;flex-direction:column;gap:0.8rem;margin-bottom:1.2rem">
+      <input type="text" id="new-user-name" placeholder="Nombre completo" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);font-family:'Nunito',sans-serif;font-size:0.9rem;padding:0.7rem 1rem;outline:none;width:100%"/>
+      <input type="text" id="new-user-login" placeholder="Usuario (login)" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);font-family:'Nunito',sans-serif;font-size:0.9rem;padding:0.7rem 1rem;outline:none;width:100%"/>
+      <input type="password" id="new-user-pass" placeholder="Contraseña" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);font-family:'Nunito',sans-serif;font-size:0.9rem;padding:0.7rem 1rem;outline:none;width:100%"/>
+      <select id="new-user-section" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);font-family:'Nunito',sans-serif;font-size:0.9rem;padding:0.7rem 1rem;outline:none;width:100%">
+        <option value="pitagoricos">Pitagóricos (4°-5°)</option>
+        <option value="arquimedianos">Arquimedianos (6°-7°)</option>
+        <option value="gaussianos">Gaussianos (8°-9°)</option>
+        <option value="eulerianos">Eulerianos (10°-11°)</option>
+      </select>
+      <input type="text" id="new-user-grade" placeholder="Grado (ej: 5°A)" style="background:var(--input-bg);border:1px solid rgba(249,198,19,0.2);border-radius:8px;color:var(--white);font-family:'Nunito',sans-serif;font-size:0.9rem;padding:0.7rem 1rem;outline:none;width:100%"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm" style="background:rgba(255,255,255,0.08);color:var(--text-muted)" onclick="closeModal('modal-add-user')">Cancelar</button>
+      <button class="btn-sm primary" onclick="saveNewUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-section-select">
+  <div class="modal">
+    <div class="modal-title">🎯 Selecciona tu sección</div>
+    <div class="modal-text">Selecciona la sección a la que perteneces según tu grado.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.2rem">
+      <div class="phase-card" style="cursor:pointer;padding:1rem" onclick="selectSection('pitagoricos')">
+        <div style="font-size:1.5rem;margin-bottom:0.3rem">📐</div>
+        <div class="phase-card-title" style="font-size:0.85rem">Pitagóricos</div>
+        <div class="phase-card-info">Grados 4° y 5°</div>
+      </div>
+      <div class="phase-card" style="cursor:pointer;padding:1rem" onclick="selectSection('arquimedianos')">
+        <div style="font-size:1.5rem;margin-bottom:0.3rem">⚗️</div>
+        <div class="phase-card-title" style="font-size:0.85rem">Arquimedianos</div>
+        <div class="phase-card-info">Grados 6° y 7°</div>
+      </div>
+      <div class="phase-card" style="cursor:pointer;padding:1rem" onclick="selectSection('gaussianos')">
+        <div style="font-size:1.5rem;margin-bottom:0.3rem">∑</div>
+        <div class="phase-card-title" style="font-size:0.85rem">Gaussianos</div>
+        <div class="phase-card-info">Grados 8° y 9°</div>
+      </div>
+      <div class="phase-card" style="cursor:pointer;padding:1rem" onclick="selectSection('eulerianos')">
+        <div style="font-size:1.5rem;margin-bottom:0.3rem">π</div>
+        <div class="phase-card-title" style="font-size:0.85rem">Eulerianos</div>
+        <div class="phase-card-info">Grados 10° y 11°</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm" style="background:rgba(255,255,255,0.08);color:var(--text-muted)" onclick="closeModal('modal-section-select')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA STORE (localStorage)
+// ═══════════════════════════════════════════════════
+const DB = {
+  save(key, val) { try { localStorage.setItem('lansso_'+key, JSON.stringify(val)); } catch(e){} },
+  load(key, def) { try { const v = localStorage.getItem('lansso_'+key); return v ? JSON.parse(v) : def; } catch(e){ return def; } }
+};
+
+let APP = {
+  users: DB.load('users', []),           // [{name, login, pass, section, grade, active}]
+  questions: DB.load('questions', []),    // [{id, section, phase, text, img, opts:[{text,img}], correct}]
+  results: DB.load('results', []),        // [{userId, name, section, phase, correct, total, pct, time, date}]
+  phases: DB.load('phases', {            // phase state per section
+    pitagoricos:    { clasificacion: 'closed', semifinal: 'closed', final: 'closed' },
+    arquimedianos:  { clasificacion: 'closed', semifinal: 'closed', final: 'closed' },
+    gaussianos:     { clasificacion: 'closed', semifinal: 'closed', final: 'closed' },
+    eulerianos:     { clasificacion: 'closed', semifinal: 'closed', final: 'closed' },
+  }),
+  adminPass: DB.load('adminPass', 'admin2025'),
+  sheetsURL: DB.load('sheetsURL', ''),
+  currentUser: null,
+  currentPhase: null,
+  exam: { questions: [], answers: {}, current: 0, startTime: null, timer: null, totalSecs: 0 }
+};
+
+function saveApp() {
+  DB.save('users', APP.users);
+  DB.save('questions', APP.questions);
+  DB.save('results', APP.results);
+  DB.save('phases', APP.phases);
+  DB.save('adminPass', APP.adminPass);
+  DB.save('sheetsURL', APP.sheetsURL);
+}
+
+// ═══════════════════════════════════════════════════
+// IMAGE COMPRESSION
+// ═══════════════════════════════════════════════════
+function compressImage(file, maxW=600, quality=0.65) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// BACKGROUND MATH SYMBOLS
+// ═══════════════════════════════════════════════════
+const mathSymbols = ['π','∑','∞','∫','√','∂','Δ','θ','λ','μ','α','β','γ','φ','≠','≈','÷','×','²','³'];
+function initBackground() {
+  const bg = document.getElementById('bg-canvas');
+  for (let i = 0; i < 20; i++) {
+    const el = document.createElement('div');
+    el.className = 'math-float';
+    el.textContent = mathSymbols[Math.floor(Math.random() * mathSymbols.length)];
+    el.style.left = Math.random()*100 + 'vw';
+    el.style.animationDuration = (20 + Math.random()*30) + 's';
+    el.style.animationDelay = (-Math.random()*30) + 's';
+    el.style.fontSize = (0.8 + Math.random()*1.5) + 'rem';
+    bg.appendChild(el);
+  }
+}
+initBackground();
+
+// ═══════════════════════════════════════════════════
+// PAGE ROUTING
+// ═══════════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST NOTIFICATIONS
+// ═══════════════════════════════════════════════════
+function toast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = (type==='success'?'✅':'❌') + ' ' + msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ═══════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════
+function togglePass() {
+  const inp = document.getElementById('login-pass');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
+
+  // admin
+  if (user === 'admin' && pass === APP.adminPass) {
+    APP.currentUser = { name: 'Administrador', login: 'admin', section: null, grade: '', isAdmin: true };
+    initAdminPage();
+    showPage('admin');
+    return;
+  }
+
+  // participant
+  const found = APP.users.find(u => u.login === user && u.pass === pass && u.active !== false);
+  if (!found) { err.style.display = 'block'; return; }
+
+  APP.currentUser = found;
+  // determine current open phase
+  const sectionPhases = APP.phases[found.section];
+  let openPhase = null;
+  for (const ph of ['clasificacion','semifinal','final']) {
+    if (sectionPhases[ph] === 'open') { openPhase = ph; break; }
+  }
+
+  if (!openPhase) {
+    err.textContent = 'No hay ninguna fase activa para tu sección en este momento.';
+    err.style.display = 'block';
+    return;
+  }
+
+  // check if already submitted
+  const alreadyDone = APP.results.find(r => r.userId === found.login && r.phase === openPhase && r.section === found.section);
+  if (alreadyDone) {
+    err.textContent = 'Ya completaste esta fase. Espera la apertura de la siguiente.';
+    err.style.display = 'block';
+    return;
+  }
+
+  APP.currentPhase = openPhase;
+  startExam();
+}
+
+function showSectionSelect() {}
+
+function selectSection(section) {
+  closeModal('modal-section-select');
+}
+
+function showAdminLogin() {
+  document.getElementById('login-user').value = 'admin';
+  document.getElementById('login-pass').focus();
+}
+
+function logoutAdmin() { APP.currentUser = null; showPage('login'); }
+
+// ═══════════════════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════════════════
+function showAdminPanel(name) {
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'questions') renderQuestionList();
+  if (name === 'participants') renderParticipants();
+  if (name === 'results') renderResults();
+  if (name === 'phases') renderPhases();
+  if (name === 'sheets') renderSheetsPanel();
+}
+
+function initAdminPage() {
+  renderDashboard();
+  renderQuestionForm();
+}
+
+// Dashboard
+function renderDashboard() {
+  const grid = document.getElementById('stats-grid');
+  const sections = ['pitagoricos','arquimedianos','gaussianos','eulerianos'];
+  const totalPart = APP.users.length;
+  const totalQ = APP.questions.length;
+  const totalRes = APP.results.length;
+  const avgScore = APP.results.length ? (APP.results.reduce((a,r)=>a+r.pct,0)/APP.results.length).toFixed(1) : 0;
+  grid.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${totalPart}</div><div class="stat-label">Participantes</div></div>
+    <div class="stat-card"><div class="stat-val">${totalQ}</div><div class="stat-label">Preguntas</div></div>
+    <div class="stat-card"><div class="stat-val">${totalRes}</div><div class="stat-label">Evaluaciones</div></div>
+    <div class="stat-card"><div class="stat-val">${avgScore}%</div><div class="stat-label">Promedio</div></div>
+    ${sections.map(s => {
+      const count = APP.users.filter(u=>u.section===s).length;
+      const names = {pitagoricos:'Pitagóricos',arquimedianos:'Arquimedianos',gaussianos:'Gaussianos',eulerianos:'Eulerianos'};
+      return `<div class="stat-card"><div class="stat-val">${count}</div><div class="stat-label">${names[s]}</div></div>`;
+    }).join('')}
+  `;
+
+  const tbody = document.getElementById('recent-tbody');
+  const recent = [...APP.results].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
+  tbody.innerHTML = recent.map(r => `
+    <tr>
+      <td>${r.name}</td>
+      <td>${sectionLabel(r.section)}</td>
+      <td><span class="badge-phase ${r.phase}">${phaseLabel(r.phase)}</span></td>
+      <td style="color:var(--lans-yellow);font-weight:700">${r.pct}%</td>
+      <td>${new Date(r.date).toLocaleDateString('es-CO')}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="color:var(--text-muted);padding:1rem;text-align:center">Sin resultados aún</td></tr>';
+}
+
+// Phase management
+function renderPhases() {
+  const wrap = document.getElementById('phase-cards-wrap');
+  const sections = ['pitagoricos','arquimedianos','gaussianos','eulerianos'];
+  const phaseNames = { clasificacion:'Clasificatoria', semifinal:'Semifinal', final:'Final' };
+  const phaseInfo = {
+    clasificacion: '20 preguntas · 100 minutos',
+    semifinal: '10 preguntas · 60 minutos',
+    final: '5 preguntas · 40 minutos'
+  };
+  wrap.innerHTML = sections.map(sec => {
+    const phases = APP.phases[sec];
+    return `
+      <div style="background:var(--card-bg);border:1px solid rgba(249,198,19,0.12);border-radius:16px;padding:1.2rem">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.9rem;font-weight:700;color:var(--lans-yellow);margin-bottom:1rem">${sectionLabel(sec)}</div>
+        ${Object.entries(phases).map(([ph, status]) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;padding:0.5rem 0.7rem;border-radius:8px;background:rgba(255,255,255,0.03)">
+            <div>
+              <div style="font-size:0.82rem;color:var(--white);font-weight:600">${phaseNames[ph]}</div>
+              <div style="font-size:0.7rem;color:var(--text-muted)">${phaseInfo[ph]}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <span class="phase-status ${status}"><span class="dot"></span>${status==='open'?'ABIERTA':'CERRADA'}</span>
+              <button class="btn-sm ${status==='open'?'danger':'success'}" onclick="togglePhase('${sec}','${ph}')">
+                ${status==='open'?'Cerrar':'Abrir'}
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }).join('');
+}
+
+function togglePhase(section, phase) {
+  const current = APP.phases[section][phase];
+  APP.phases[section][phase] = current === 'open' ? 'closed' : 'open';
+  saveApp();
+  renderPhases();
+  updatePhaseNotice();
+  toast(`Fase ${phaseLabel(phase)} ${APP.phases[section][phase]==='open'?'abierta':'cerrada'} para ${sectionLabel(section)}`);
+}
+
+function updatePhaseNotice() {
+  // checks if any phase is open globally
+  const notice = document.getElementById('phase-notice');
+  if (!notice) return;
+  let anyOpen = false;
+  for (const sec of Object.values(APP.phases)) for (const st of Object.values(sec)) if (st==='open') { anyOpen = true; break; }
+  if (anyOpen) notice.innerHTML = 'Hay fases activas. <span style="color:var(--lans-green-light)">¡El examen está disponible!</span>';
+  else notice.innerHTML = 'La fase de clasificación terminó oficialmente. <a href="#" style="color:var(--lans-yellow)">Muy pronto comenzará la fase 2.</a>';
+}
+
+// Question builder
+let currentQuestionImg = null;
+let optionImages = { 0: null, 1: null, 2: null, 3: null };
+
+function renderQuestionForm() {
+  const builder = document.getElementById('options-builder');
+  if (!builder) return;
+  const letters = ['A','B','C','D'];
+  builder.innerHTML = letters.map((l, i) => `
+    <div class="option-item" id="opt-item-${i}">
+      <div class="option-label">${l}</div>
+      <input type="text" id="opt-text-${i}" placeholder="Opción ${l}"/>
+      <label title="Subir imagen a opción ${l}">
+        <input type="file" accept="image/*" style="display:none" onchange="loadOptionImage(event, ${i})">
+        <button class="option-img-btn" onclick="this.previousElementSibling.click();event.preventDefault()">🖼</button>
+      </label>
+      <input type="radio" name="correct-opt" value="${i}" id="radio-${i}"/>
+      <img id="opt-img-${i}" class="img-preview" style="max-height:60px"/>
+    </div>
+  `).join('');
+}
+renderQuestionForm();
+
+async function loadQuestionImage(e) {
+  const file = e.target.files[0]; if (!file) return;
+  currentQuestionImg = await compressImage(file, 800, 0.7);
+  const preview = document.getElementById('q-img-preview');
+  preview.src = currentQuestionImg; preview.style.display = 'block';
+  toast('Imagen del enunciado cargada y comprimida');
+}
+
+function clearQuestionImage() {
+  currentQuestionImg = null;
+  const p = document.getElementById('q-img-preview');
+  if (p) { p.src=''; p.style.display='none'; }
+}
+
+async function loadOptionImage(e, idx) {
+  const file = e.target.files[0]; if (!file) return;
+  optionImages[idx] = await compressImage(file, 400, 0.65);
+  const preview = document.getElementById('opt-img-'+idx);
+  preview.src = optionImages[idx]; preview.style.display = 'block';
+}
+
+function addQuestion() {
+  const section = document.getElementById('q-section').value;
+  const phase = document.getElementById('q-phase').value;
+  const text = document.getElementById('q-text').value.trim();
+  if (!text) { toast('Escribe el enunciado de la pregunta', 'error'); return; }
+
+  const opts = [];
+  for (let i = 0; i < 4; i++) {
+    opts.push({ text: document.getElementById('opt-text-'+i).value.trim(), img: optionImages[i] });
+  }
+  if (opts.some(o=>!o.text && !o.img)) { toast('Completa todas las opciones de respuesta', 'error'); return; }
+
+  const correctRadio = document.querySelector('input[name="correct-opt"]:checked');
+  if (!correctRadio) { toast('Selecciona la opción correcta', 'error'); return; }
+
+  // check question limit per phase
+  const phaseLimits = { clasificacion: 20, semifinal: 10, final: 5 };
+  const existing = APP.questions.filter(q => q.section === section && q.phase === phase).length;
+  if (existing >= phaseLimits[phase]) {
+    toast(`Límite de preguntas para esta fase: ${phaseLimits[phase]}`, 'error'); return;
+  }
+
+  APP.questions.push({
+    id: Date.now(),
+    section, phase, text,
+    img: currentQuestionImg,
+    opts,
+    correct: parseInt(correctRadio.value)
+  });
+  saveApp();
+  clearQuestionForm();
+  renderQuestionList();
+  toast('Pregunta agregada correctamente ✅');
+}
+
+function clearQuestionForm() {
+  document.getElementById('q-text').value = '';
+  currentQuestionImg = null;
+  optionImages = {0:null,1:null,2:null,3:null};
+  clearQuestionImage();
+  for (let i=0;i<4;i++) {
+    document.getElementById('opt-text-'+i).value = '';
+    const img = document.getElementById('opt-img-'+i);
+    if (img) { img.src=''; img.style.display='none'; }
+  }
+  const r = document.querySelector('input[name="correct-opt"]:checked');
+  if (r) r.checked = false;
+}
+
+function renderQuestionList() {
+  const list = document.getElementById('question-list');
+  const filterSec = document.getElementById('filter-section-q')?.value || 'all';
+  const filterPh = document.getElementById('filter-phase-q')?.value || 'all';
+  let qs = APP.questions;
+  if (filterSec !== 'all') qs = qs.filter(q => q.section === filterSec);
+  if (filterPh !== 'all') qs = qs.filter(q => q.phase === filterPh);
+  document.getElementById('q-count').textContent = `${qs.length} pregunta(s)`;
+  list.innerHTML = qs.map((q, idx) => `
+    <div class="q-item">
+      <div class="q-num">${idx+1}</div>
+      <div class="q-content">
+        <div class="q-text">${q.text.substring(0,120)}${q.text.length>120?'...':''}</div>
+        <div class="q-meta">
+          ${sectionLabel(q.section)} · ${phaseLabel(q.phase)} · ✅ Correcta: ${['A','B','C','D'][q.correct]}
+          ${q.img ? ' · 📷 Con imagen' : ''}
+        </div>
+      </div>
+      <div class="q-actions">
+        <button class="btn-sm danger" onclick="deleteQuestion(${q.id})">🗑</button>
+      </div>
+    </div>
+  `).join('') || '<div style="color:var(--text-muted);padding:1rem;text-align:center">No hay preguntas aún</div>';
+}
+
+function deleteQuestion(id) {
+  APP.questions = APP.questions.filter(q => q.id !== id);
+  saveApp(); renderQuestionList();
+}
+
+function clearAllQuestions() {
+  if (!confirm('¿Eliminar TODAS las preguntas? Esta acción no se puede deshacer.')) return;
+  APP.questions = []; saveApp(); renderQuestionList();
+}
+
+// Participants
+function renderParticipants() {
+  const tbody = document.getElementById('participants-tbody');
+  tbody.innerHTML = APP.users.map((u, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${u.name}</td>
+      <td><code style="background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;font-size:0.8rem">${u.login}</code></td>
+      <td>${sectionLabel(u.section)}</td>
+      <td>${u.grade || '-'}</td>
+      <td><span class="phase-status ${u.active===false?'closed':'open'}"><span class="dot"></span>${u.active===false?'Inactivo':'Activo'}</span></td>
+      <td style="display:flex;gap:0.4rem">
+        <button class="btn-sm ${u.active===false?'success':'danger'}" onclick="toggleUser('${u.login}')">${u.active===false?'Activar':'Desactivar'}</button>
+        <button class="btn-sm danger" onclick="deleteUser('${u.login}')">🗑</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="color:var(--text-muted);padding:1rem;text-align:center">Sin participantes</td></tr>';
+}
+
+function openAddUserModal() { document.getElementById('modal-add-user').classList.add('open'); }
+function saveNewUser() {
+  const name = document.getElementById('new-user-name').value.trim();
+  const login = document.getElementById('new-user-login').value.trim();
+  const pass = document.getElementById('new-user-pass').value;
+  const section = document.getElementById('new-user-section').value;
+  const grade = document.getElementById('new-user-grade').value.trim();
+  if (!name || !login || !pass) { toast('Completa todos los campos', 'error'); return; }
+  if (APP.users.find(u=>u.login===login)) { toast('El usuario ya existe', 'error'); return; }
+  if (APP.users.length >= 1000) { toast('Límite de 1000 participantes alcanzado', 'error'); return; }
+  APP.users.push({ name, login, pass, section, grade, active: true });
+  saveApp(); closeModal('modal-add-user'); renderParticipants();
+  toast('Participante agregado');
+}
+
+function toggleUser(login) {
+  const u = APP.users.find(u=>u.login===login);
+  if (u) { u.active = !u.active; saveApp(); renderParticipants(); }
+}
+
+function deleteUser(login) {
+  if (!confirm('¿Eliminar este participante?')) return;
+  APP.users = APP.users.filter(u=>u.login!==login);
+  saveApp(); renderParticipants();
+}
+
+function importCSV() { document.getElementById('csv-file').click(); }
+
+function handleCSVImport(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const lines = ev.target.result.split('\n').filter(l=>l.trim());
+    let added = 0;
+    // format: nombre,usuario,contraseña,seccion,grado
+    for (let i=1; i<lines.length; i++) {
+      const cols = lines[i].split(',').map(c=>c.trim());
+      if (cols.length < 3) continue;
+      const [name, login, pass, section='pitagoricos', grade=''] = cols;
+      if (!name||!login||!pass) continue;
+      if (APP.users.find(u=>u.login===login)) continue;
+      if (APP.users.length >= 1000) break;
+      APP.users.push({ name, login, pass, section, grade, active: true });
+      added++;
+    }
+    saveApp(); renderParticipants();
+    toast(`${added} participantes importados`);
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function exportCSV() {
+  const rows = [['Nombre','Usuario','Contraseña','Sección','Grado']];
+  APP.users.forEach(u => rows.push([u.name,u.login,u.pass,u.section,u.grade||'']));
+  downloadCSV(rows, 'participantes_lansso.csv');
+}
+
+function exportResultsCSV() {
+  const rows = [['Nombre','Usuario','Sección','Fase','Correctas','Total','%','Tiempo','Fecha']];
+  APP.results.forEach(r => rows.push([r.name,r.userId,r.section,r.phase,r.correct,r.total,r.pct,r.time,r.date]));
+  downloadCSV(rows, 'resultados_lansso.csv');
+}
+
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+}
+
+// Results table
+function renderResults() {
+  const filterSec = document.getElementById('filter-section-r')?.value || 'all';
+  const filterPh = document.getElementById('filter-phase-r')?.value || 'all';
+  let res = APP.results;
+  if (filterSec !== 'all') res = res.filter(r=>r.section===filterSec);
+  if (filterPh !== 'all') res = res.filter(r=>r.phase===filterPh);
+  res = [...res].sort((a,b)=>b.pct-a.pct);
+  document.getElementById('results-tbody').innerHTML = res.map((r,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${r.name}</td>
+      <td><code style="background:rgba(255,255,255,0.05);padding:2px 5px;border-radius:4px;font-size:0.78rem">${r.userId}</code></td>
+      <td>${sectionLabel(r.section)}</td>
+      <td><span class="badge-phase ${r.phase}">${phaseLabel(r.phase)}</span></td>
+      <td>${r.correct}</td>
+      <td>${r.total}</td>
+      <td style="color:${r.pct>=70?'var(--lans-green-light)':r.pct>=50?'var(--lans-yellow)':'#ef9a9a'};font-weight:800">${r.pct}%</td>
+      <td>${r.time}</td>
+      <td>${new Date(r.date).toLocaleDateString('es-CO')}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="10" style="color:var(--text-muted);padding:1rem;text-align:center">Sin resultados</td></tr>';
+}
+
+// Sheets panel
+function renderSheetsPanel() {
+  document.getElementById('sheets-url').value = APP.sheetsURL;
+  const code = `// ═══════════════════════════════════════
+// LANSSO - Apps Script para Google Sheets
+// Pega este código en: Extensiones → Apps Script
+// Luego: Implementar → Nueva implementación → Web App
+//        Ejecutar como: Yo mismo
+//        Acceso: Cualquiera
+// ═══════════════════════════════════════
+
+const SHEET_NAME = "Resultados";
+const SHEET_PART = "Participantes";
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    if (data.type === "result") {
+      let sheet = ss.getSheetByName(SHEET_NAME);
+      if (!sheet) {
+        sheet = ss.insertSheet(SHEET_NAME);
+        sheet.appendRow(["Nombre","Usuario","Sección","Fase","Correctas","Total","%","Tiempo","Fecha"]);
+        sheet.getRange(1,1,1,9).setBackground("#2e7d32").setFontColor("#fff").setFontWeight("bold");
+      }
+      // Avoid duplicates
+      const existing = sheet.getDataRange().getValues();
+      for (let i=1;i<existing.length;i++) {
+        if (existing[i][1]===data.userId && existing[i][3]===data.phase && existing[i][2]===data.section) {
+          // Update existing
+          sheet.getRange(i+1,5,1,5).setValues([[data.correct,data.total,data.pct+"%",data.time,data.date]]);
+          return ContentService.createTextOutput(JSON.stringify({ok:true,action:"updated"})).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      sheet.appendRow([data.name,data.userId,data.section,data.phase,data.correct,data.total,data.pct+"%",data.time,data.date]);
+    }
+    
+    if (data.type === "batch") {
+      let sheet = ss.getSheetByName(SHEET_NAME);
+      if (!sheet) {
+        sheet = ss.insertSheet(SHEET_NAME);
+        sheet.appendRow(["Nombre","Usuario","Sección","Fase","Correctas","Total","%","Tiempo","Fecha"]);
+        sheet.getRange(1,1,1,9).setBackground("#2e7d32").setFontColor("#fff").setFontWeight("bold");
+      }
+      sheet.clearContents();
+      sheet.appendRow(["Nombre","Usuario","Sección","Fase","Correctas","Total","%","Tiempo","Fecha"]);
+      data.results.forEach(r => {
+        sheet.appendRow([r.name,r.userId,r.section,r.phase,r.correct,r.total,r.pct+"%",r.time,r.date]);
+      });
+    }
+    
+    if (data.type === "participants") {
+      let sheet = ss.getSheetByName(SHEET_PART);
+      if (!sheet) {
+        sheet = ss.insertSheet(SHEET_PART);
+        sheet.appendRow(["Nombre","Usuario","Sección","Grado","Activo"]);
+        sheet.getRange(1,1,1,5).setBackground("#1565c0").setFontColor("#fff").setFontWeight("bold");
+      }
+      sheet.clearContents();
+      sheet.appendRow(["Nombre","Usuario","Sección","Grado","Activo"]);
+      data.participants.forEach(p => {
+        sheet.appendRow([p.name,p.login,p.section,p.grade||"",p.active===false?"No":"Sí"]);
+      });
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ok:false,error:err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({status:"LANSSO Sheets API active"})).setMimeType(ContentService.MimeType.JSON);
+}`;
+  document.getElementById('apps-script-code').textContent = code;
+}
+
+function saveSheetURL() {
+  APP.sheetsURL = document.getElementById('sheets-url').value.trim();
+  saveApp(); toast('URL de Google Sheets guardada');
+}
+
+async function testSheetConnection() {
+  if (!APP.sheetsURL) { toast('Primero guarda la URL', 'error'); return; }
+  try {
+    const r = await fetch(APP.sheetsURL, { method: 'GET', mode: 'no-cors' });
+    toast('Conexión exitosa con Google Sheets ✅');
+  } catch(e) { toast('Error de conexión: ' + e.message, 'error'); }
+}
+
+function copyAppsScript() {
+  const text = document.getElementById('apps-script-code').textContent;
+  navigator.clipboard.writeText(text).then(() => toast('Código copiado al portapapeles'));
+}
+
+async function saveAllToSheets() {
+  if (!APP.sheetsURL) { toast('Configura la URL de Google Sheets primero', 'error'); showAdminPanel('sheets'); return; }
+  try {
+    await fetch(APP.sheetsURL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'batch', results: APP.results })
+    });
+    await fetch(APP.sheetsURL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'participants', participants: APP.users })
+    });
+    toast('Datos sincronizados con Google Sheets ✅');
+  } catch(e) { toast('Error al sincronizar: ' + e.message, 'error'); }
+}
+
+async function sendResultToSheets(result) {
+  if (!APP.sheetsURL) return;
+  try {
+    await fetch(APP.sheetsURL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'result', ...result })
+    });
+  } catch(e) { console.warn('Sheets sync failed:', e); }
+}
+
+function changeAdminPass() {
+  const np = document.getElementById('new-admin-pass').value;
+  if (!np || np.length < 6) { toast('La contraseña debe tener al menos 6 caracteres', 'error'); return; }
+  APP.adminPass = np; saveApp(); toast('Contraseña de administrador actualizada');
+}
+
+// ═══════════════════════════════════════════════════
+// EXAM ENGINE
+// ═══════════════════════════════════════════════════
+const PHASE_CONFIG = {
+  clasificacion: { label: 'Fase Clasificatoria', questions: 20, minutes: 100 },
+  semifinal:     { label: 'Semifinal', questions: 10, minutes: 60 },
+  final:         { label: 'Final', questions: 5, minutes: 40 }
+};
+
+function startExam() {
+  const user = APP.currentUser;
+  const phase = APP.currentPhase;
+  const config = PHASE_CONFIG[phase];
+
+  let qs = APP.questions.filter(q => q.section === user.section && q.phase === phase);
+  // shuffle
+  qs = qs.sort(() => Math.random() - 0.5).slice(0, config.questions);
+
+  if (qs.length === 0) {
+    document.getElementById('login-error').textContent = 'No hay preguntas disponibles para esta fase. Contacta al administrador.';
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+
+  APP.exam = {
+    questions: qs,
+    answers: {},
+    current: 0,
+    startTime: Date.now(),
+    totalSecs: config.minutes * 60,
+    remainingSecs: config.minutes * 60,
+    timer: null
+  };
+
+  // update header
+  document.getElementById('exam-phase-badge').textContent = config.label;
+  document.getElementById('exam-section-badge').textContent = sectionLabel(user.section);
+  document.getElementById('exam-user-info').textContent = user.name;
+
+  showPage('exam');
+  buildNavGrid();
+  renderQuestion(0);
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(APP.exam.timer);
+  APP.exam.timer = setInterval(() => {
+    APP.exam.remainingSecs--;
+    updateTimerDisplay();
+    if (APP.exam.remainingSecs <= 0) {
+      clearInterval(APP.exam.timer);
+      submitExam();
+    }
+  }, 1000);
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const s = APP.exam.remainingSecs;
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  const txt = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  document.getElementById('timer-text').textContent = txt;
+  const wrap = document.getElementById('timer-display');
+  if (s <= 300) wrap.classList.add('warning'); else wrap.classList.remove('warning');
+}
+
+function buildNavGrid() {
+  const grid = document.getElementById('q-nav-grid');
+  const total = APP.exam.questions.length;
+  grid.innerHTML = Array.from({length: total}, (_, i) => `
+    <button class="q-nav-btn ${i===0?'current':''}" id="qnav-${i}" onclick="goToQuestion(${i})">${i+1}</button>
+  `).join('');
+}
+
+function renderQuestion(idx) {
+  const q = APP.exam.questions[idx];
+  const total = APP.exam.questions.length;
+  const answered = Object.keys(APP.exam.answers).length;
+
+  document.getElementById('q-number').textContent = `PREGUNTA ${idx+1} DE ${total}`;
+  document.getElementById('q-text-display').textContent = q.text;
+
+  const qimg = document.getElementById('q-img-display');
+  if (q.img) { qimg.src = q.img; qimg.style.display = 'block'; }
+  else qimg.style.display = 'none';
+
+  const optList = document.getElementById('options-list');
+  const letters = ['A','B','C','D'];
+  optList.innerHTML = q.opts.map((o, i) => `
+    <button class="option-btn ${APP.exam.answers[idx]===i?'selected':''}" onclick="selectAnswer(${idx},${i})" id="opt-btn-${i}">
+      <span class="opt-letter">${letters[i]}</span>
+      <span class="opt-text">${o.text || ''}</span>
+      ${o.img ? `<img src="${o.img}" class="opt-img"/>` : ''}
+    </button>
+  `).join('');
+
+  // nav
+  document.getElementById('btn-prev').style.display = idx === 0 ? 'none' : '';
+  const isLast = idx === total - 1;
+  document.getElementById('btn-next').style.display = isLast ? 'none' : '';
+  document.getElementById('btn-submit').style.display = isLast ? '' : 'none';
+
+  // update nav grid
+  document.querySelectorAll('.q-nav-btn').forEach((b,i) => {
+    b.classList.remove('current', 'answered');
+    if (i === idx) b.classList.add('current');
+    else if (APP.exam.answers[i] !== undefined) b.classList.add('answered');
+  });
+
+  // progress
+  document.getElementById('progress-text').textContent = `${answered} de ${total} respondidas`;
+  document.getElementById('progress-bar').style.width = (answered/total*100) + '%';
+}
+
+function selectAnswer(qIdx, optIdx) {
+  APP.exam.answers[qIdx] = optIdx;
+  renderQuestion(qIdx);
+}
+
+function goToQuestion(idx) {
+  APP.exam.current = idx;
+  renderQuestion(idx);
+}
+
+function prevQuestion() {
+  if (APP.exam.current > 0) { APP.exam.current--; renderQuestion(APP.exam.current); }
+}
+
+function nextQuestion() {
+  const total = APP.exam.questions.length;
+  if (APP.exam.current < total - 1) { APP.exam.current++; renderQuestion(APP.exam.current); }
+}
+
+function confirmSubmit() {
+  const answered = Object.keys(APP.exam.answers).length;
+  const total = APP.exam.questions.length;
+  const unanswered = total - answered;
+  document.getElementById('modal-submit-text').innerHTML = unanswered > 0
+    ? `Tienes <strong style="color:var(--lans-yellow)">${unanswered}</strong> pregunta(s) sin responder. ¿Deseas entregar el examen de todas formas?`
+    : `¿Estás seguro de que quieres entregar tu examen? Has respondido <strong style="color:var(--lans-green-light)">todas las preguntas</strong>.`;
+  document.getElementById('modal-submit').classList.add('open');
+}
+
+async function submitExam() {
+  clearInterval(APP.exam.timer);
+  closeModal('modal-submit');
+
+  const user = APP.currentUser;
+  const phase = APP.currentPhase;
+  const qs = APP.exam.questions;
+  const answers = APP.exam.answers;
+
+  let correct = 0;
+  qs.forEach((q, i) => { if (answers[i] === q.correct) correct++; });
+
+  const total = qs.length;
+  const pct = Math.round((correct / total) * 100);
+  const elapsed = Math.floor((Date.now() - APP.exam.startTime) / 1000);
+  const timeStr = `${Math.floor(elapsed/60)}m ${elapsed%60}s`;
+
+  const result = {
+    userId: user.login,
+    name: user.name,
+    section: user.section,
+    phase,
+    correct, total, pct,
+    time: timeStr,
+    date: new Date().toISOString()
+  };
+
+  APP.results.push(result);
+  saveApp();
+  await sendResultToSheets(result);
+
+  // show results
+  const trophy = pct >= 80 ? '🏆' : pct >= 60 ? '🥈' : pct >= 40 ? '🥉' : '📝';
+  const msg = pct >= 80 ? '¡Excelente desempeño! Clasificas a la siguiente fase.' :
+              pct >= 60 ? '¡Buen trabajo! Espera los resultados oficiales.' :
+              pct >= 40 ? 'Sigue practicando. Revisa los temas con tu docente.' :
+                          'Necesitas reforzar los temas. ¡No te rindas!';
+
+  document.getElementById('results-trophy').textContent = trophy;
+  document.getElementById('results-name').textContent = user.name;
+  document.getElementById('results-section-text').textContent = `${sectionLabel(user.section)} · ${PHASE_CONFIG[phase].label}`;
+  document.getElementById('results-score').textContent = pct + '%';
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-total').textContent = total;
+  document.getElementById('res-time').textContent = timeStr;
+  document.getElementById('results-msg').textContent = msg;
+
+  showPage('results');
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function sectionLabel(s) {
+  return { pitagoricos:'Pitagóricos', arquimedianos:'Arquimedianos', gaussianos:'Gaussianos', eulerianos:'Eulerianos' }[s] || s;
+}
+function phaseLabel(p) {
+  return { clasificacion:'Clasificatoria', semifinal:'Semifinal', final:'Final' }[p] || p;
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('page-login').classList.contains('active')) doLogin();
+});
+
+// Initial notice update
+updatePhaseNotice();
+</script>
+</body>
+</html>
